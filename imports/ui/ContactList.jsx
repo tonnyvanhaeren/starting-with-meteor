@@ -1,56 +1,23 @@
 import React, { memo } from "react";
 import { ContactsCollection } from "../api/ContactsCollection";
-import { useTracker } from 'meteor/react-meteor-data';
-import { ErrorAlert } from "./components/ErrorAlert";
-import { SuccessAlert } from './components/SuccessAlert';
+import { useSubscribe, useFind } from 'meteor/react-meteor-data';
 
 export const ContactList = () => {
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
-
-  //const isLoading = useSubscribe('allContacts');
-  // const contacts = useFind(() => ContactsCollection.find({}, { sort: { createdAt: -1 } }));
-
-  const showError = ({ message }) => {
-    setError(message);
-    setTimeout(() => {
-      setError("");
-    }, 5000);
-  }
-
-  const showSuccess = ({ message }) => {
-    setSuccess(message);
-    setTimeout(() => {
-      setSuccess("");
-    }, 5000);
-  }
-
-  const contacts = useTracker(() => {
-    return ContactsCollection.find({}, { sort: { createdAt: -1 } }).fetch();
-  });
+  const isLoading = useSubscribe("allContacts")
+  const contacts = useFind(() => ContactsCollection.find({}, { sort: { createdAt: -1 } }))
 
   const removeContact = (event, _id) => {
     event.preventDefault();
-    Meteor.call('contacts.remove', { contactId: _id }, (errorResponse) => {
-      if (errorResponse) {
-        showError({ message: errorResponse.error });
-      } else {
-        showSuccess({ message: "Contact Removed." });
-      }
-    });
+    Meteor.call('contacts.remove', { contactId: _id });
   }
 
-  // if(isLoading()) {
-  //   return (
-  //     <div>
-  //       <div className="mt-10">
-  //         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-  //           Loading...
-  //         </h3>
-  //       </div>
-  //     </div>
-  //   )
-  // }
+  const Loading = () => <div>
+    <div className="mt-10">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        Loading...
+      </h3>
+    </div>
+  </div>
 
   const ContactItem = memo(({ contact }) => {
     return (
@@ -77,11 +44,12 @@ export const ContactList = () => {
     )
   });
 
+  if (isLoading()) {
+    return <Loading />;
+  }
   return (
     <div>
       <div className="mt-10">
-        {error && <ErrorAlert message={error} />}
-        {success && <SuccessAlert message={success} />}
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
           Contact List
         </h3>
